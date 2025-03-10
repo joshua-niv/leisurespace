@@ -1,0 +1,201 @@
+/* 基础样式设置 */
+:root {
+    /* 浅色模式变量 */
+    --bg-color: #f5f5f7;
+    --text-color: #1d1d1f;
+    --card-bg: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-color: #0071e3;
+    --secondary-bg: #e8e8ed;
+}
+
+/* 暗黑模式变量 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1d1d1f;
+        --text-color: #f5f5f7;
+        --card-bg: #2c2c2e;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --accent-color: #2997ff;
+        --secondary-bg: #3a3a3c;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* 个人资料部分样式 */
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.profile-image-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 4px solid var(--accent-color);
+    box-shadow: 0 8px 16px var(--shadow-color);
+    background-color: var(--secondary-bg);
+}
+
+#profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* 照片占位符样式 */
+#profile-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* 信息部分样式 */
+.info-section {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 16px var(--shadow-color);
+    text-align: center;
+}
+
+.location-info, .weather-info, .time-info {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.info-section i {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+/* 内容部分样式 */
+.content-section {
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 16px var(--shadow-color);
+}
+
+.content-section h1 {
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.content-section p {
+    margin-bottom: 15px;
+}
+
+/* 摄影作品展示区样式 */
+.photography-section {
+    margin-top: 40px;
+}
+
+.photography-section h2 {
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.photo-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.photo-item {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px var(--shadow-color);
+    background-color: var(--card-bg);
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+    transform: translateY(-5px);
+}
+
+.gallery-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    background-color: var(--secondary-bg);
+    max-height: none;
+}
+
+.photo-caption {
+    padding: 15px;
+}
+
+.photo-caption p {
+    margin: 5px 0;
+}
+
+.photo-description {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .profile-image-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .info-section {
+        padding: 15px;
+    }
+}
+
+/* 响应式调整 */
+@media (min-width: 768px) {
+    .photo-item {
+        width: calc(100% - 20px);
+        max-width: 800px;
+    }
+    
+    .gallery-photo {
+        height: auto;
+        max-height: 600px;
+    }
+} 
