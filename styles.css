@@ -86,17 +86,30 @@ body {
     border-radius: 16px;
     padding: 20px;
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     box-shadow: 0 8px 16px var(--shadow-color);
     text-align: center;
 }
 
-.location-info, .weather-info, .time-info {
-    margin: 12px 0;
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.info-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
+    padding: 10px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.location-info, .weather-info, .time-info {
+    margin: 0;
 }
 
 .info-section i {
@@ -182,8 +195,13 @@ body {
         height: 120px;
     }
     
-    .info-section {
-        padding: 15px;
+    .info-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .info-item {
+        width: 100%;
     }
 }
 

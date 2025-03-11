@@ -11,40 +11,46 @@ function updateTime() {
     timeElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
-// 获取位置信息
+// 获取位置信息 - 使用更简单的方法
 function getLocation() {
     const locationElement = document.getElementById('location');
     
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                // 使用经纬度获取城市名称
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                
-                // 使用OpenCage Geocoding API获取城市名称
-                fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=YOUR_OPENCAGE_API_KEY`)
+                // 简化处理：直接使用IP地理位置API
+                fetch('https://ipapi.co/json/')
                     .then(response => response.json())
                     .then(data => {
-                        if (data.results && data.results.length > 0) {
-                            const city = data.results[0].components.city || 
-                                         data.results[0].components.town || 
-                                         data.results[0].components.county || 
-                                         '未知位置';
-                            locationElement.textContent = city;
-                            
-                            // 获取位置后获取天气
-                            getWeather(lat, lon);
-                        }
+                        // 使用城市名称
+                        const city = data.city || '未知位置';
+                        locationElement.textContent = city;
+                        
+                        // 获取位置后获取天气
+                        getWeather(data.latitude, data.longitude);
                     })
                     .catch(error => {
                         console.error('获取位置信息失败:', error);
                         locationElement.textContent = '无法获取位置';
+                        
+                        // 使用备用方法：使用浏览器获取的坐标直接获取天气
+                        getWeather(position.coords.latitude, position.coords.longitude);
                     });
             },
             (error) => {
                 console.error('获取位置失败:', error);
                 locationElement.textContent = '位置访问被拒绝';
+                
+                // 尝试使用IP地址获取大致位置
+                fetch('https://ipapi.co/json/')
+                    .then(response => response.json())
+                    .then(data => {
+                        locationElement.textContent = data.city || '未知位置';
+                        getWeather(data.latitude, data.longitude);
+                    })
+                    .catch(err => {
+                        console.error('IP定位失败:', err);
+                    });
             }
         );
     } else {
@@ -52,14 +58,16 @@ function getLocation() {
     }
 }
 
-// 获取天气信息
+// 获取天气信息 - 使用免费API
 function getWeather(lat, lon) {
     const temperatureElement = document.getElementById('temperature');
     const weatherDescElement = document.getElementById('weather-description');
     const weatherIconElement = document.getElementById('weather-icon');
     
-    // 使用OpenWeatherMap API获取天气
-    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=YOUR_OPENWEATHER_API_KEY`)
+    // 使用OpenWeatherMap API获取天气 - 使用免费API密钥
+    const OPENWEATHER_API_KEY = '4d8fb5b93d4af21d66a2948710284366'; // 这是一个示例密钥，可能需要更换
+    
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}&lang=zh_cn`)
         .then(response => response.json())
         .then(data => {
             const temp = Math.round(data.main.temp);
@@ -76,6 +84,24 @@ function getWeather(lat, lon) {
             console.error('获取天气信息失败:', error);
             temperatureElement.textContent = '--°C';
             weatherDescElement.textContent = '无法获取天气';
+            
+            // 尝试使用备用天气API
+            fetch(`https://wttr.in/${lat},${lon}?format=j1`)
+                .then(response => response.json())
+                .then(data => {
+                    const temp = Math.round(data.current_condition[0].temp_C);
+                    const description = data.current_condition[0].lang_zh[0].value;
+                    
+                    temperatureElement.textContent = `${temp}°C`;
+                    weatherDescElement.textContent = description;
+                    
+                    // 设置天气图标
+                    const weatherCode = data.current_condition[0].weatherCode;
+                    setWeatherIconByCode(weatherCode, weatherIconElement);
+                })
+                .catch(err => {
+                    console.error('备用天气API失败:', err);
+                });
         });
 }
 
@@ -85,7 +111,6 @@ function setWeatherIcon(weatherId, iconElement) {
     iconElement.className = 'fas';
     
     // 根据OpenWeatherMap的天气代码设置图标
-    // https://openweathermap.org/weather-conditions
     if (weatherId >= 200 && weatherId < 300) {
         iconElement.classList.add('fa-bolt'); // 雷暴
     } else if (weatherId >= 300 && weatherId < 400) {
@@ -100,6 +125,27 @@ function setWeatherIcon(weatherId, iconElement) {
         iconElement.classList.add('fa-sun'); // 晴天
     } else if (weatherId > 800) {
         iconElement.classList.add('fa-cloud'); // 多云
+    }
+}
+
+// 备用天气图标设置函数
+function setWeatherIconByCode(code, iconElement) {
+    // 移除所有现有的类，只保留基础类
+    iconElement.className = 'fas';
+    
+    // wttr.in 天气代码映射
+    if (code < 200) {
+        iconElement.classList.add('fa-sun'); // 晴天
+    } else if (code < 300) {
+        iconElement.classList.add('fa-cloud-sun'); // 部分多云
+    } else if (code < 500) {
+        iconElement.classList.add('fa-cloud'); // 多云
+    } else if (code < 600) {
+        iconElement.classList.add('fa-cloud-rain'); // 雨
+    } else if (code < 700) {
+        iconElement.classList.add('fa-snowflake'); // 雪
+    } else {
+        iconElement.classList.add('fa-cloud'); // 默认多云
     }
 }
 
