@@ -159,9 +159,9 @@ body {
 }
 
 .photo-gallery {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
     justify-content: center;
 }
 
@@ -172,6 +172,8 @@ body {
     box-shadow: 0 6px 12px var(--shadow-color);
     background-color: var(--card-bg);
     transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .photo-item:hover {
@@ -181,14 +183,18 @@ body {
 .gallery-photo {
     width: 100%;
     height: auto;
+    max-height: 500px;
     display: block;
     object-fit: contain;
     background-color: var(--secondary-bg);
-    max-height: none;
+    padding: 10px;
 }
 
 .photo-caption {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .photo-caption p {
@@ -199,6 +205,25 @@ body {
     font-size: 0.9rem;
     color: var(--text-color);
     opacity: 0.8;
+}
+
+/* 个人标题样式 */
+.profile-title {
+    margin: 15px 0 25px;
+    text-align: center;
+}
+
+.profile-title h1 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.profile-title span {
+    font-size: 1.4rem;
+    color: var(--text-color);
+    margin-left: 10px;
+    font-weight: 500;
 }
 
 /* 响应式设计 */
@@ -216,17 +241,26 @@ body {
     .info-item {
         width: 100%;
     }
+    
+    .profile-title h1 {
+        font-size: 1.5rem;
+    }
+    
+    .profile-title span {
+        font-size: 1.2rem;
+        display: block;
+        margin-left: 0;
+        margin-top: 5px;
+    }
 }
 
 /* 响应式调整 */
-@media (min-width: 768px) {
-    .photo-item {
-        width: calc(100% - 20px);
-        max-width: 800px;
+@media (max-width: 768px) {
+    .photo-gallery {
+        grid-template-columns: 1fr;
     }
     
     .gallery-photo {
-        height: auto;
-        max-height: 600px;
+        max-height: 400px;
     }
 } 

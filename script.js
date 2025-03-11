@@ -2,16 +2,32 @@
 function getLocation() {
     const locationElement = document.getElementById('location');
     
-    // 使用 ip-api.com（完全免费，但仅支持 HTTP）
-    fetch('https://ip-api.com/json/?fields=city,lat,lon&lang=zh-CN')
+    // 使用更可靠的 IP 定位服务
+    fetch('https://api.ipapi.is/')
         .then(response => response.json())
         .then(data => {
-            locationElement.textContent = data.city || '未知位置';
-            getWeather(data.lat, data.lon);
+            // 使用城市名称
+            const city = data.location.city || '未知位置';
+            locationElement.textContent = city;
+            
+            // 获取位置后获取天气
+            getWeather(data.location.latitude, data.location.longitude);
         })
         .catch(error => {
             console.error('获取位置信息失败:', error);
-            locationElement.textContent = '无法获取位置';
+            // 备用 IP 定位服务
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    locationElement.textContent = data.city || '未知位置';
+                    getWeather(data.latitude, data.longitude);
+                })
+                .catch(err => {
+                    console.error('备用定位失败:', err);
+                    locationElement.textContent = '未知位置';
+                    // 使用默认坐标获取天气（比如北京）
+                    getWeather(39.9042, 116.4074);
+                });
         });
 }
 
