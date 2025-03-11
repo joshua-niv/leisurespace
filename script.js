@@ -1,94 +1,43 @@
-// 获取位置信息 - 使用更简单的方法
+// 使用纯免费 API 的替代方案
 function getLocation() {
     const locationElement = document.getElementById('location');
     
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // 简化处理：直接使用IP地理位置API
-                fetch('https://ipapi.co/json/')
-                    .then(response => response.json())
-                    .then(data => {
-                        // 使用城市名称
-                        const city = data.city || '未知位置';
-                        locationElement.textContent = city;
-                        
-                        // 获取位置后获取天气
-                        getWeather(data.latitude, data.longitude);
-                    })
-                    .catch(error => {
-                        console.error('获取位置信息失败:', error);
-                        locationElement.textContent = '无法获取位置';
-                        
-                        // 使用备用方法：使用浏览器获取的坐标直接获取天气
-                        getWeather(position.coords.latitude, position.coords.longitude);
-                    });
-            },
-            (error) => {
-                console.error('获取位置失败:', error);
-                locationElement.textContent = '位置访问被拒绝';
-                
-                // 尝试使用IP地址获取大致位置
-                fetch('https://ipapi.co/json/')
-                    .then(response => response.json())
-                    .then(data => {
-                        locationElement.textContent = data.city || '未知位置';
-                        getWeather(data.latitude, data.longitude);
-                    })
-                    .catch(err => {
-                        console.error('IP定位失败:', err);
-                    });
-            }
-        );
-    } else {
-        locationElement.textContent = '您的浏览器不支持地理位置';
-    }
+    // 使用 ip-api.com（完全免费，但仅支持 HTTP）
+    fetch('https://ip-api.com/json/?fields=city,lat,lon&lang=zh-CN')
+        .then(response => response.json())
+        .then(data => {
+            locationElement.textContent = data.city || '未知位置';
+            getWeather(data.lat, data.lon);
+        })
+        .catch(error => {
+            console.error('获取位置信息失败:', error);
+            locationElement.textContent = '无法获取位置';
+        });
 }
 
-// 获取天气信息 - 使用免费API
 function getWeather(lat, lon) {
     const temperatureElement = document.getElementById('temperature');
     const weatherDescElement = document.getElementById('weather-description');
     const weatherIconElement = document.getElementById('weather-icon');
     
-    // 使用OpenWeatherMap API获取天气 - 使用免费API密钥
-    const OPENWEATHER_API_KEY = '4d8fb5b93d4af21d66a2948710284366'; // 这是一个示例密钥，可能需要更换
-    
-    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHER_API_KEY}&lang=zh_cn`)
+    // 使用 wttr.in（完全免费）
+    fetch(`https://wttr.in/${lat},${lon}?format=j1&lang=zh`)
         .then(response => response.json())
         .then(data => {
-            const temp = Math.round(data.main.temp);
-            const description = data.weather[0].description;
-            const weatherId = data.weather[0].id;
+            const temp = Math.round(data.current_condition[0].temp_C);
+            const description = data.current_condition[0].lang_zh[0].value;
             
             temperatureElement.textContent = `${temp}°C`;
             weatherDescElement.textContent = description;
             
-            // 根据天气ID设置对应的图标
-            setWeatherIcon(weatherId, weatherIconElement);
+            // 设置天气图标
+            const weatherCode = data.current_condition[0].weatherCode;
+            setWeatherIconByCode(weatherCode, weatherIconElement);
         })
         .catch(error => {
             console.error('获取天气信息失败:', error);
             temperatureElement.textContent = '--°C';
             weatherDescElement.textContent = '无法获取天气';
-            
-            // 尝试使用备用天气API
-            fetch(`https://wttr.in/${lat},${lon}?format=j1`)
-                .then(response => response.json())
-                .then(data => {
-                    const temp = Math.round(data.current_condition[0].temp_C);
-                    const description = data.current_condition[0].lang_zh[0].value;
-                    
-                    temperatureElement.textContent = `${temp}°C`;
-                    weatherDescElement.textContent = description;
-                    
-                    // 设置天气图标
-                    const weatherCode = data.current_condition[0].weatherCode;
-                    setWeatherIconByCode(weatherCode, weatherIconElement);
-                })
-                .catch(err => {
-                    console.error('备用天气API失败:', err);
-                });
         });
 }
 
