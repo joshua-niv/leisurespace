@@ -108,13 +108,26 @@ body {
     min-width: 150px;
 }
 
-.location-info, .weather-info, .time-info {
+.location-info, .weather-info, .wechat-info {
     margin: 0;
 }
 
 .info-section i {
     color: var(--accent-color);
     font-size: 1.2rem;
+}
+
+/* 微信公众号链接样式 */
+.wechat-info a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.wechat-info a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
 }
 
 /* 内容部分样式 */

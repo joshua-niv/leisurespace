@@ -1,16 +1,3 @@
-// 更新当前时间的函数
-function updateTime() {
-    const now = new Date();
-    const timeElement = document.getElementById('current-time');
-    
-    // 格式化时间为 HH:MM:SS
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    
-    timeElement.textContent = `${hours}:${minutes}:${seconds}`;
-}
-
 // 获取位置信息 - 使用更简单的方法
 function getLocation() {
     const locationElement = document.getElementById('location');
@@ -151,12 +138,6 @@ function setWeatherIconByCode(code, iconElement) {
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', () => {
-    // 立即更新一次时间
-    updateTime();
-    
-    // 每秒更新一次时间
-    setInterval(updateTime, 1000);
-    
     // 获取位置和天气信息
     getLocation();
 }); 
