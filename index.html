@@ -1,81 +1,622 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人页面</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- 引入天气图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <div class="profile-section">
-            <!-- 圆形照片容器 -->
-            <div class="profile-image-container">
-                <!-- 修改头像图片路径 -->
-                <img id="profile-image" src="images/profile-photo.jpg" alt="个人照片">
-            </div>
-            
-            <!-- 添加标题 -->
-            <div class="profile-title">
-                <h1>闲空间 <span>Leisure Space</span></h1>
-            </div>
-            
-            <!-- 位置、天气和公众号信息 -->
-            <div class="info-section">
-                <div class="info-row">
-                    <!-- 将微信公众号移到最前面 -->
-                    <div class="wechat-info info-item">
-                        <i class="fab fa-weixin"></i>
-                        <a href="https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzAwNzY2ODkzNw==&action=getalbum&album_id=3765027131470839822#wechat_redirect" target="_blank" rel="noopener noreferrer">闲咖啡</a>
-                    </div>
-                    
-                    <div class="location-info info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="location">正在获取位置...</span>
-                    </div>
-                    
-                    <div class="weather-info info-item">
-                        <i id="weather-icon" class="fas fa-cloud"></i>
-                        <span id="temperature">--°C</span>
-                        <span id="weather-description">正在获取天气...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 这里可以添加更多内容 -->
-        <div class="content-section">
-            
-            <p>这是一个会根据系统主题自动切换明暗模式的个人页面。</p>
-            
-            <!-- 摄影作品展示区 -->
-            <div class="photography-section">
-                <h2>一些照片</h2>
-                <div class="photo-gallery">
-                    <!-- 第一张照片 -->
-                    <div class="photo-item">
-                        <img src="images/shadow-photo.jpg" alt="黑白摄影作品" class="gallery-photo">
-                        <div class="photo-caption">
-                            <p>影子 | 2023.04.15</p>
-                            <p class="photo-description">光与影的交错，记录生活中的瞬间美感</p>
-                        </div>
-                    </div>
-                    
-                    <!-- 第二张照片 -->
-                    <div class="photo-item">
-                        <img src="images/part2.jpg" alt="摄影作品" class="gallery-photo">
-                        <div class="photo-caption">
-                            <p>Part 2 | 2024</p>
-                            <p class="photo-description">生活的片段，定格的瞬间</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lowe's 答题活动</title>
+  <!-- Tailwind（CDN 版，可替换为本地文件以完全离线）-->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- QRCode 生成库（纯前端，无外部服务依赖） -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <!-- Confetti 动效（前端彩带） -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- LeanCloud JS SDK（中国区可用，避免 Google 依赖）-->
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4/dist/av-min.js"></script>
 
-    <script src="script.js"></script>
+  <style>
+    /* Lowe's 品牌配色 */
+    :root {
+      --lowes-blue: #004990;
+      --lowes-red: #DC143C;
+      --lowes-light-blue: #0066CC;
+      --lowes-gray: #666666;
+      --lowes-light-gray: #F5F5F5;
+    }
+    
+    .big-shadow { box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+    
+    /* Lowe's 主按钮样式 */
+    .btn-lowes-primary {
+      background-color: var(--lowes-blue);
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .btn-lowes-primary:hover {
+      background-color: var(--lowes-light-blue);
+    }
+    
+    .btn-lowes-secondary {
+      background-color: var(--lowes-red);
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .btn-lowes-secondary:hover {
+      background-color: #B9122E;
+    }
+    
+    /* Lowe's Logo 样式 */
+    .lowes-logo {
+      fill: var(--lowes-blue);
+      width: 120px;
+      height: auto;
+    }
+    
+    /* 输入框样式 */
+    .input-lowes {
+      border: 2px solid #ddd;
+      transition: border-color 0.3s ease;
+    }
+    .input-lowes:focus {
+      outline: none;
+      border-color: var(--lowes-blue);
+    }
+    
+    /* 题目选项按钮样式 */
+    .option-btn {
+      border: 2px solid #e0e0e0;
+      transition: all 0.3s ease;
+    }
+    .option-btn:hover {
+      border-color: var(--lowes-blue);
+      background-color: rgba(0, 73, 144, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    /* 卡片样式优化 */
+    .card-lowes {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Lowe's Logo -->
+    <div class="flex justify-center mb-6">
+      <svg class="lowes-logo" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+        <!-- Lowe's Logo 文字部分 -->
+        <text x="10" y="40" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#004990">Lowe's</text>
+        <!-- 装饰性红线 -->
+        <rect x="10" y="45" width="100" height="4" fill="#DC143C"/>
+      </svg>
+    </div>
+    <h1 class="text-3xl font-bold mb-6 text-center" style="color: var(--lowes-blue);">答题活动</h1>
+
+    <!-- 参与端：填写姓名 -->
+    <section id="view-join" class="hidden">
+      <div class="card-lowes p-8 big-shadow">
+        <h2 class="text-2xl font-semibold mb-6" style="color: var(--lowes-blue);">① 填写姓名参与</h2>
+        <div class="flex space-x-3 mb-4">
+          <input id="nameInput" class="input-lowes flex-1 rounded-lg px-4 py-3 text-lg" placeholder="请输入您的姓名" />
+          <button id="nameBtn" class="btn-lowes-primary px-6 py-3 rounded-lg font-semibold">提交</button>
+        </div>
+        <p class="text-sm" style="color: var(--lowes-gray);">提交后请等待主持人开放第1题。</p>
+      </div>
+    </section>
+
+    <!-- 参与端：第1题 -->
+    <section id="view-q1" class="hidden">
+      <div class="card-lowes p-8 big-shadow">
+        <h2 id="q1Title" class="text-2xl font-semibold mb-6" style="color: var(--lowes-blue);">第1题</h2>
+        <div id="q1Opts"></div>
+        <p class="text-sm mt-4" style="color: var(--lowes-gray);">选择后即提交，请仔细作答。</p>
+      </div>
+    </section>
+
+    <!-- 参与端：第2题 -->
+    <section id="view-q2" class="hidden">
+      <div class="card-lowes p-8 big-shadow">
+        <h2 id="q2Title" class="text-2xl font-semibold mb-6" style="color: var(--lowes-blue);">第2题</h2>
+        <div id="q2Opts"></div>
+        <p class="text-sm mt-4" style="color: var(--lowes-gray);">选择后即提交，请仔细作答。</p>
+      </div>
+    </section>
+
+    <!-- 参与端：等待区 -->
+    <section id="view-wait" class="hidden">
+      <div class="card-lowes p-8 big-shadow text-center">
+        <div class="mb-4">
+          <div class="inline-block w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style="border-color: var(--lowes-blue); border-top-color: transparent;"></div>
+        </div>
+        <h2 class="text-2xl font-semibold mb-4" style="color: var(--lowes-blue);">请稍候</h2>
+        <p id="waitMsg" class="text-lg mb-4" style="color: var(--lowes-gray);">主持人稍后将开启题目或公布抽奖结果…</p>
+        <div class="mt-4 text-gray-700">您的姓名：
+          <span id="yourName" class="font-bold text-lg" style="color: var(--lowes-blue);"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 大屏幕模式 -->
+    <section id="view-screen" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="card-lowes p-8 big-shadow flex flex-col items-center justify-center">
+          <div id="screenQR" class="mb-6"></div>
+          <div class="text-xl font-semibold" style="color: var(--lowes-blue);">请扫码参与答题</div>
+        </div>
+        <div class="card-lowes p-8 big-shadow">
+          <div class="text-4xl font-extrabold mb-4" style="color: var(--lowes-blue);">现场进度</div>
+          <div id="screenMsg" class="text-2xl mb-6 font-semibold" style="color: var(--lowes-gray);">等待开始…</div>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="p-6 border-2 rounded-xl" style="border-color: var(--lowes-blue);">
+              <div class="text-4xl font-bold mb-2" style="color: var(--lowes-blue);" id="screenTotal">0</div>
+              <div class="text-sm font-semibold" style="color: var(--lowes-gray);">报名人数</div>
+            </div>
+            <div class="p-6 border-2 rounded-xl" style="border-color: var(--lowes-blue);">
+              <div class="text-4xl font-bold mb-2" style="color: var(--lowes-blue);" id="screenQ1">0</div>
+              <div class="text-sm font-semibold" style="color: var(--lowes-gray);">第1题提交</div>
+            </div>
+            <div class="p-6 border-2 rounded-xl" style="border-color: var(--lowes-blue);">
+              <div class="text-4xl font-bold mb-2" style="color: var(--lowes-blue);" id="screenQ2">0</div>
+              <div class="text-sm font-semibold" style="color: var(--lowes-gray);">第2题提交</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-lowes p-8 mt-6 big-shadow text-center" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 3px solid var(--lowes-red);">
+        <div class="text-5xl mb-4">🎉</div>
+        <div class="text-4xl font-extrabold mb-2" style="color: var(--lowes-red);">恭喜 <span class="winnerName"></span> ！</div>
+        <div style="color: var(--lowes-gray);" class="text-lg mt-2">（当主持人抽奖后将显示）</div>
+      </div>
+    </section>
+
+    <!-- 管理员模式 -->
+    <section id="view-admin" class="hidden">
+      <div id="adminGate" class="card-lowes p-8 big-shadow">
+        <h2 class="text-2xl font-semibold mb-6" style="color: var(--lowes-blue);">管理员入口</h2>
+        <div class="flex space-x-3">
+          <input id="adminCode" class="input-lowes flex-1 rounded-lg px-4 py-3 text-lg" placeholder="输入管理员口令" />
+          <button id="adminEnter" class="btn-lowes-primary px-6 py-3 rounded-lg font-semibold">进入</button>
+        </div>
+      </div>
+
+      <div id="adminPanel" class="hidden card-lowes p-8 big-shadow mt-6">
+        <h2 class="text-3xl font-semibold mb-6" style="color: var(--lowes-blue);">控制台</h2>
+
+        <div class="grid grid-cols-3 gap-4 mb-6" id="adminStats">
+          <div class="p-6 border-2 rounded-xl text-center" style="border-color: var(--lowes-blue);">
+            <div class="text-3xl font-bold mb-2" style="color: var(--lowes-blue);" id="statTotal">0</div>
+            <div class="text-sm font-semibold" style="color: var(--lowes-gray);">报名人数</div>
+          </div>
+          <div class="p-6 border-2 rounded-xl text-center" style="border-color: var(--lowes-blue);">
+            <div class="text-3xl font-bold mb-2" style="color: var(--lowes-blue);" id="statQ1">0</div>
+            <div class="text-sm font-semibold" style="color: var(--lowes-gray);">第1题提交</div>
+          </div>
+          <div class="p-6 border-2 rounded-xl text-center" style="border-color: var(--lowes-blue);">
+            <div class="text-3xl font-bold mb-2" style="color: var(--lowes-blue);" id="statQ2">0</div>
+            <div class="text-sm font-semibold" style="color: var(--lowes-gray);">第2题提交</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 mb-6">
+          <button id="btnInit" class="px-5 py-3 rounded-lg font-semibold" style="background-color: #e0e0e0; color: #333;">一键初始化</button>
+          <button id="btnStartQ1" class="btn-lowes-primary px-5 py-3 rounded-lg font-semibold">开放第1题</button>
+          <button id="btnEndQ1Draw" class="btn-lowes-secondary px-5 py-3 rounded-lg font-semibold">结束第1题并抽奖</button>
+          <button id="btnStartQ2" class="btn-lowes-primary px-5 py-3 rounded-lg font-semibold">开始第2题</button>
+          <button id="btnEndAll" class="btn-lowes-secondary px-5 py-3 rounded-lg font-semibold">结束活动</button>
+          <button id="btnResetWinner" class="px-5 py-3 rounded-lg font-semibold" style="background-color: #9c27b0; color: white;">清空获奖显示</button>
+          <button id="btnExport" class="px-5 py-3 rounded-lg font-semibold" style="background-color: #424242; color: white;">导出 CSV</button>
+        </div>
+
+        <div class="mt-6 p-6 rounded-xl" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 2px solid var(--lowes-red);">
+          <div class="text-xl font-bold" style="color: var(--lowes-red);">🎉 当前获奖者：<span class="winnerName font-extrabold"></span></div>
+        </div>
+
+        <div class="mt-6 text-sm text-gray-500">
+          <div>大屏幕地址：<code>?mode=screen</code></div>
+          <div>管理员地址：<code>?mode=admin</code></div>
+          <div>参与者（扫码后默认页）：<code>无参数</code></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-10 text-center text-sm" style="color: var(--lowes-gray);">
+      <div>Lowe's 答题活动系统 | 一次性活动使用</div>
+    </footer>
+  </div>
+
+  <!-- 业务脚本：LeanCloud 版，无谷歌依赖 -->
+  <script>
+    // ==============================
+    // 1) 填写你的 LeanCloud 配置（中国区 / 国际区二选一）
+    //    建议用中国区（lc-cn 结尾）。
+    //    登录 LeanCloud 控制台 -> 应用 Keys -> 获得 appId/appKey/serverURL
+    //    
+    //    重要：配置步骤
+    //    1. 访问 https://leancloud.cn/ 登录您的账号
+    //    2. 创建应用（选择中国区节点）
+    //    3. 进入应用 -> 设置 -> 应用 Keys
+    //    4. 复制 App ID、App Key、Server URL 并填写到下方
+    // ==============================
+    const LC_APP_ID = 'MOmsJ8zedWpUtgbcDm1d6k0M-gzGzoHsz';
+    const LC_APP_KEY = 'oS84Mf2RlylsrirPZ0uzKzG2';
+    const LC_SERVER_URLS = 'https://momsj8ze.lc-cn-n1-shared.com';
+
+    // 初始化 LeanCloud
+    AV.init({ appId: LC_APP_ID, appKey: LC_APP_KEY, serverURLs: LC_SERVER_URLS });
+
+    // 管理员口令（一次性活动用，建议修改为更安全的密码）
+    const ADMIN_CODE = '8888';
+
+    // ==============================
+    // 2) 题目设置（自行替换为现场题目与选项）
+    //    请根据实际活动内容修改题目和选项
+    // ==============================
+    const QUESTIONS = {
+      q1: {
+        title: '第1题：今天主持人穿的衣服颜色是？',
+        options: ['红色', '蓝色', '黑色', '白色'],
+      },
+      q2: {
+        title: '第2题：本次活动地点在？',
+        options: ['A厅', 'B厅', 'C厅', 'D厅'],
+      },
+    };
+
+    // ==============================
+    // 3) 简易状态与数据结构（LeanCloud Classes）
+    //    Class: Meta(key, phase, winnerPid, ts)
+    //           phase: 'name' | 'q1' | 'draw1' | 'q2' | 'done'
+    //    Class: Participant(pid, name, createdAt)
+    //    Class: Answer(pid, name, q1, q2, updatedAt)
+    // ==============================
+
+    // DOM 快捷
+    const $ = sel => document.querySelector(sel);
+    const byId = id => document.getElementById(id);
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    function uuid() {
+      if (crypto?.randomUUID) return crypto.randomUUID();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function ensurePid() {
+      let pid = localStorage.getItem('pid');
+      if (!pid) { pid = uuid(); localStorage.setItem('pid', pid); }
+      return pid;
+    }
+
+    function getQueryParam(name) {
+      return new URLSearchParams(location.search).get(name);
+    }
+
+    // 视图引用
+    const viewJoin = byId('view-join');
+    const viewQ1 = byId('view-q1');
+    const viewQ2 = byId('view-q2');
+    const viewWait = byId('view-wait');
+    const viewScreen = byId('view-screen');
+    const viewAdmin = byId('view-admin');
+
+    const nameInput = byId('nameInput');
+    const nameBtn = byId('nameBtn');
+
+    const q1Title = byId('q1Title');
+    const q1Opts = byId('q1Opts');
+    const q2Title = byId('q2Title');
+    const q2Opts = byId('q2Opts');
+
+    const screenQR = byId('screenQR');
+    const screenMsg = byId('screenMsg');
+
+    const adminCodeInput = byId('adminCode');
+    const adminGate = byId('adminGate');
+    const adminPanel = byId('adminPanel');
+
+    const btnInit = byId('btnInit');
+    const btnStartQ1 = byId('btnStartQ1');
+    const btnEndQ1Draw = byId('btnEndQ1Draw');
+    const btnStartQ2 = byId('btnStartQ2');
+    const btnEndAll = byId('btnEndAll');
+    const btnResetWinner = byId('btnResetWinner');
+    const btnExport = byId('btnExport');
+
+    const winnerNameSpans = document.querySelectorAll('.winnerName');
+
+    function showOnly(el) {
+      [viewJoin, viewQ1, viewQ2, viewWait, viewScreen, viewAdmin].forEach(v => v?.classList.add('hidden'));
+      el && el.classList.remove('hidden');
+    }
+
+    function renderQuestion(titleEl, optsEl, qKey) {
+      const q = QUESTIONS[qKey];
+      titleEl.textContent = q.title;
+      optsEl.innerHTML = '';
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn w-full my-3 px-6 py-4 rounded-lg text-lg font-semibold';
+        btn.style.cssText = 'border: 2px solid #e0e0e0; transition: all 0.3s ease;';
+        btn.textContent = opt;
+        btn.onclick = () => submitAnswer(qKey, opt);
+        optsEl.appendChild(btn);
+      });
+    }
+
+    function renderScreenQR() {
+      screenQR.innerHTML = '';
+      const joinUrl = `${location.origin}${location.pathname}`; // 无参即参与端
+      // 大屏幕显示，二维码尺寸调大
+      new QRCode(screenQR, { text: joinUrl, width: 280, height: 280, colorDark: '#004990', colorLight: '#ffffff' });
+    }
+
+    async function playConfetti() {
+      try {
+        const duration = 1500; const end = Date.now() + duration;
+        (function frame() {
+          confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+          confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+      } catch(e) {}
+    }
+
+    async function showWinnerName(name) {
+      winnerNameSpans.forEach(sp => sp.textContent = name || '');
+      if (name) await playConfetti();
+    }
+
+    // ===== LeanCloud 数据封装 =====
+    async function upsertParticipant(pid, name) {
+      const Participant = AV.Object.extend('Participant');
+      const query = new AV.Query('Participant');
+      query.equalTo('pid', pid);
+      const exist = await query.first();
+      if (exist) {
+        exist.set('name', name);
+        exist.set('createdAtMs', Date.now());
+        return exist.save();
+      } else {
+        const obj = new Participant();
+        obj.set('pid', pid);
+        obj.set('name', name);
+        obj.set('createdAtMs', Date.now());
+        return obj.save();
+      }
+    }
+
+    async function getParticipantByPid(pid) {
+      const q = new AV.Query('Participant');
+      q.equalTo('pid', pid);
+      return q.first();
+    }
+
+    async function upsertAnswer(pid, name, patch) {
+      const Answer = AV.Object.extend('Answer');
+      const q = new AV.Query('Answer');
+      q.equalTo('pid', pid);
+      let obj = await q.first();
+      if (!obj) obj = new Answer();
+      obj.set('pid', pid);
+      obj.set('name', name);
+      Object.keys(patch).forEach(k => obj.set(k, patch[k]));
+      obj.set('updatedAtMs', Date.now());
+      return obj.save();
+    }
+
+    async function countAnswers(hasField) {
+      const q = new AV.Query('Answer');
+      q.exists(hasField);
+      return q.count();
+    }
+
+    async function countParticipants() {
+      const q = new AV.Query('Participant');
+      return q.count();
+    }
+
+    // Meta: 单行，key='state'
+    async function ensureMeta() {
+      const q = new AV.Query('Meta');
+      q.equalTo('key', 'state');
+      let m = await q.first();
+      if (!m) {
+        const Meta = AV.Object.extend('Meta');
+        m = new Meta();
+        m.set('key', 'state');
+        m.set('phase', 'name');
+        m.set('winnerPid', null);
+        m.set('ts', Date.now());
+        await m.save();
+      }
+      return m;
+    }
+
+    async function getMeta() {
+      const q = new AV.Query('Meta');
+      q.equalTo('key', 'state');
+      return q.first();
+    }
+
+    async function setPhase(phase) {
+      const m = await ensureMeta();
+      m.set('phase', phase);
+      m.set('ts', Date.now());
+      await m.save();
+    }
+
+    async function setWinner(pidOrNull) {
+      const m = await ensureMeta();
+      m.set('winnerPid', pidOrNull || null);
+      m.set('ts', Date.now());
+      await m.save();
+    }
+
+    async function drawFromAnswered(which='q1') {
+      // 从已提交对应题目的用户中抽取
+      const q = new AV.Query('Answer');
+      q.exists(which);
+      q.limit(1000);
+      const list = await q.find();
+      if (!list.length) { alert('暂无提交，无法抽奖'); return null; }
+      const idx = Math.floor(Math.random() * list.length);
+      const winner = list[idx];
+      const pid = winner.get('pid');
+      await setWinner(pid);
+      const p = await getParticipantByPid(pid);
+      const name = p ? (p.get('name') || '未留名') : '未留名';
+      alert(`中奖者：${name}`);
+      return pid;
+    }
+
+    async function exportCSV() {
+      const pQ = new AV.Query('Participant'); pQ.limit(1000); const ps = await pQ.find();
+      const aQ = new AV.Query('Answer'); aQ.limit(1000); const as = await aQ.find();
+      const amap = new Map(as.map(o => [o.get('pid'), o]));
+      const rows = [["pid","name","q1","q2","updatedAtMs"]];
+      ps.forEach(p => {
+        const pid = p.get('pid');
+        const name = p.get('name') || '';
+        const a = amap.get(pid);
+        rows.push([
+          pid,
+          name,
+          a ? (a.get('q1') || '') : '',
+          a ? (a.get('q2') || '') : '',
+          a ? (a.get('updatedAtMs') || '') : ''
+        ]);
+      });
+      const csv = rows
+        .map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
+        .join('\n');
+      const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `quiz_export_${Date.now()}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ===== 参与端交互 =====
+    async function submitName() {
+      const name = nameInput.value.trim();
+      if (!name) return alert('请先填写姓名');
+      const pid = ensurePid();
+      await upsertParticipant(pid, name);
+      localStorage.setItem('name', name);
+      byId('yourName').textContent = name;
+      alert('提交成功，等待主持人开始第1题…');
+      showOnly(viewWait);
+    }
+
+    async function submitAnswer(qKey, value) {
+      const pid = ensurePid();
+      const name = localStorage.getItem('name') || '';
+      if (!name) { alert('请先填写姓名'); return showOnly(viewJoin); }
+      const patch = {}; patch[qKey] = value;
+      await upsertAnswer(pid, name, patch);
+      alert('已提交✅');
+    }
+
+    // ===== 轮询更新（避免额外实时库，足够一次性活动） =====
+    async function refreshUI(mode) {
+      const meta = await getMeta();
+      const phase = meta ? meta.get('phase') : 'name';
+      const winnerPid = meta ? meta.get('winnerPid') : null;
+
+      // 公共统计
+      const [total, q1c, q2c] = await Promise.all([
+        countParticipants(),
+        countAnswers('q1'),
+        countAnswers('q2'),
+      ]);
+      byId('statTotal') && (byId('statTotal').textContent = String(total));
+      byId('statQ1') && (byId('statQ1').textContent = String(q1c));
+      byId('statQ2') && (byId('statQ2').textContent = String(q2c));
+      byId('screenTotal') && (byId('screenTotal').textContent = String(total));
+      byId('screenQ1') && (byId('screenQ1').textContent = String(q1c));
+      byId('screenQ2') && (byId('screenQ2').textContent = String(q2c));
+
+      if (mode === 'screen') {
+        const map = { name: '扫码报名，填写姓名', q1: '第1题进行中…', draw1: '抽奖中…', q2: '第2题进行中…', done: '活动结束，谢谢参与！' };
+        byId('screenMsg').textContent = map[phase] || '等待开始…';
+
+        if (winnerPid) {
+          const p = await getParticipantByPid(winnerPid);
+          const name = p ? (p.get('name') || '未留名') : '未留名';
+          await showWinnerName(name);
+        } else {
+          await showWinnerName('');
+        }
+      }
+
+      if (mode === 'join') {
+        const name = localStorage.getItem('name');
+        if (!name) { showOnly(viewJoin); return; }
+        byId('yourName').textContent = name;
+        if (phase === 'name') showOnly(viewWait);
+        else if (phase === 'q1') { renderQuestion(q1Title, q1Opts, 'q1'); showOnly(viewQ1); }
+        else if (phase === 'draw1') showOnly(viewWait);
+        else if (phase === 'q2') { renderQuestion(q2Title, q2Opts, 'q2'); showOnly(viewQ2); }
+        else if (phase === 'done') { showOnly(viewWait); byId('waitMsg').textContent = '活动已结束，感谢参与！'; }
+      }
+    }
+
+    function startPolling(mode) {
+      refreshUI(mode);
+      setInterval(() => refreshUI(mode), 2000); // 2 秒一轮
+    }
+
+    // ===== 启动入口 =====
+    function boot() {
+      const mode = (getQueryParam('mode') || '').toLowerCase();
+      nameBtn.onclick = submitName;
+
+      if (mode === 'screen') {
+        showOnly(viewScreen); renderScreenQR(); startPolling('screen'); return;
+      }
+
+      if (mode === 'admin') {
+        showOnly(viewAdmin);
+        adminGate.classList.remove('hidden');
+        adminPanel.classList.add('hidden');
+        byId('adminEnter').onclick = async () => {
+          if (adminCodeInput.value === ADMIN_CODE) {
+            adminGate.classList.add('hidden');
+            adminPanel.classList.remove('hidden');
+            // 绑定按钮
+            btnInit.onclick = async () => { await ensureMeta(); alert('初始化完成'); };
+            btnStartQ1.onclick = () => setPhase('q1');
+            btnEndQ1Draw.onclick = async () => { await setPhase('draw1'); await sleep(400); await drawFromAnswered('q1'); };
+            btnStartQ2.onclick = () => setPhase('q2');
+            btnEndAll.onclick = () => setPhase('done');
+            btnResetWinner.onclick = () => setWinner(null);
+            btnExport.onclick = exportCSV;
+            startPolling('admin');
+          } else {
+            alert('口令错误');
+          }
+        };
+        return;
+      }
+
+      // 默认：参与端
+      showOnly(viewJoin);
+      const name = localStorage.getItem('name');
+      if (name) { byId('yourName').textContent = name; showOnly(viewWait); }
+      startPolling('join');
+    }
+
+    window.addEventListener('DOMContentLoaded', boot);
+  </script>
 </body>
-</html> 
+</html>
